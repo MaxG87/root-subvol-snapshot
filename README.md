@@ -1,6 +1,11 @@
 # root-subvol-snapshot
 Script to snapshot all top level subvolumes on an BtrFS
 
+## Installation
+
+Either `sudo cp snapshot /usr/local/bin` or `cp snapshot ~/.local/bin`.
+
+
 ## Usage
 This section assumes that the script is available via `$PATH` under the name
 `snapshot`.
