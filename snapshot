@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DEFAULT_MAX_AGE=60
+
+function main() {
+
+    local rootDevice; rootDevice=$(mount | grep -F 'on / type' | awk '{print $1}')
+    local maxAlterInTagen="$1"
+
+    ensure_root_permissions
+    ensure_btrfs "${rootDevice}"
+
+    local mountDir; mountDir="$(mktemp -d)"
+    local snapshots="${mountDir}/@snapshots"
+    sudo mount -o subvolid=0 "${rootDevice}" "${mountDir}"
+    sudo mkdir -p "${snapshots}"
+    local newSnapshotsRoot; newSnapshotsRoot="${snapshots}/$(date +%Y-%m-%d_%H:%M:%S)"
+
+    remove_old_snapshots "${maxAlterInTagen}" "${snapshots}"
+    create_snapshots "${mountDir}" "${newSnapshotsRoot}"
+
+    sudo umount "${mountDir}"
+    rmdir "${mountDir}"
+
+}
+
+function parse_args() {
+    maxAlterInTagen=${DEFAULT_MAX_AGE}
+    while [[ $# -gt 0 ]]
+    do
+        case "${1}" in
+            -h | --help) print_usage ; exit 0 ;;
+            --max-age) maxAlterInTagen="$2"; shift ;;
+            *) echo "Unbekannte Option '$1'. Abbruch." >&2; exit 1 ;;
+        esac
+        shift
+    done
+}
+
+function print_usage() {
+    cat <<EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h|--help] [--max-age <AGE>]
+
+Script description here.
+
+Available options:
+
+-h, --help      Print this help and exit
+--max-age       Maximum age of snapshots in days. Defaults to ${DEFAULT_MAX_AGE}.
+EOF
+
+}
+
+function ensure_root_permissions() {
+    if ! sudo -v
+    then
+        echo Unverzichtbare Rootrechte sind nicht verfügbar. Abbruch! >&2
+        exit 1
+    fi
+}
+
+
+function ensure_btrfs() {
+    local rootDevice="$1"
+    # Wenn das Dateisystem auf $rootDevice nicht BtrFS ist, sind Schnappschüsse
+    # nicht möglich. Dies wird hier geprüft. Ggf. wird das Skript hier
+    # verlassen.
+    #
+    # Um das snapshot-Skript auch auf nicht-BtrFS-Systemen im distup-Alias
+    # verwenden zu können, ist der Exit-Code trotzdem "0".
+    if [[ $(lsblk -o FSTYPE "${rootDevice}" | tail -n1) != "btrfs" ]]
+    then
+        echo Gerät "${rootDevice}" ist kein BtrFS-Dateisystem. Es wird kein Snapshot gemacht! >&2
+        exit 0
+    fi
+}
+
+
+function remove_old_snapshots() {
+    # Lösche alle Snapshots, die älter sind als $maxTage Tage.
+    local maxTage="$1"
+    local snapshots="$2"
+    local schwelle; schwelle=$(date --date "${maxTage} days ago" +%s)
+
+    local dateDir
+    for dateDir in "${snapshots}"/*
+    do
+        local dirDate; dirDate="$(basename "${dateDir}")"
+        local whenCreated; whenCreated="$(date +%s -d "${dirDate/_/ }")"
+        if [[ "${whenCreated}" -le "${schwelle}" ]]
+        then
+            local curSnapshot
+            for curSnapshot in "${dateDir}"/*
+            do
+                # Es wird angenommen, dass alle Unterordner von ${dateDir}
+                # Snapshots sind. Dadurch vereinfacht sich diese Schleife
+                # ungemein.
+                sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
+            done
+            sudo rmdir "${dateDir}"
+        fi
+    done
+}
+
+
+function create_snapshots() {
+    # neue Snapshots anlegen
+    local mountDir="${1}"
+    local dest="${2}"
+    sudo mkdir "${dest}"
+    local srcSubvol
+    for srcSubvol in $(sudo btrfs subvolume list "${mountDir}" | grep -Fv / | awk '{print $9}')
+    do
+        sudo btrfs subvolume "snapshot" -r "${mountDir}/${srcSubvol}" "${dest}/${srcSubvol}" |
+            sed "s!${mountDir}/!!g"
+    done
+}
+
+
+parse_args "$@"
+main "${maxAlterInTagen}"
