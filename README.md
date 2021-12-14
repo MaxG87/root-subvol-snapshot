@@ -34,7 +34,6 @@ Then the following commands should produce the following output:
 $ sudo mount -o subvolid=0 "$DEVICE" /mnt
 $ ls /mnt
 @ @home @shared @snapshots
-$ tree -L2 /mnt/@snapshots
 ```
 
 Here, the entries `@`, `@home` and `@shared` are independent subvolumes which
