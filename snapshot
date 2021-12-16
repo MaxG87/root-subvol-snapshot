@@ -85,7 +85,8 @@ function remove_old_snapshots() {
     local schwelle; schwelle=$(date --date "${maxTage} days ago" +%s)
 
     local dateDir
-    for dateDir in "${snapshots}"/*
+    find "${snapshots}" -mindepth 1 -maxdepth 1 | \
+    while read -r dateDir
     do
         local dirDate; dirDate="$(basename "${dateDir}")"
         local whenCreated; whenCreated="$(date +%s -d "${dirDate/_/ }")"
