@@ -3,7 +3,7 @@ Script to snapshot all top level subvolumes on an BtrFS
 
 ## Installation
 
-Either `sudo cp snapshot /usr/local/bin` or `cp snapshot ~/.local/bin`.
+Either `sudo install snapshot /usr/local/bin` or `install snapshot ~/.local/bin`.
 
 
 ## Usage
