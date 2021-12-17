@@ -25,19 +25,29 @@ The default value of 60 days was chosen as good-fit for the author of this
 script.
 
 
+
 ## Directory layout
-This script assumes that all subvolumes to snapshot live at the root of your
-BtrFS file system and are prefixed with `@`. Lets say your device is `$DEVICE`.
-Then the following commands should produce the following output:
+
+Recall that the root of a BtrFS is not necessarily the `/` of the running
+system. The root of a BtrFS is the subvolume with ID 0.
+
+This script assumes that all subvolumes to snapshot are located directly at the
+root of your BtrFS file system. Lets say your device is `$DEVICE`. Then the
+following commands should produce the following output:
 
 ```bash
 $ sudo mount -o subvolid=0 "$DEVICE" /mnt
 $ ls /mnt
-@ @home @shared @snapshots
+@ @home @snapshots shared
 ```
 
-Here, the entries `@`, `@home` and `@shared` are independent subvolumes which
+Here, the entries `@`, `@home` and `shared` are independent subvolumes which
 shall be snapshotted into `@snapshots`.
+
+Please note that `@snapshots` is listed here because `snapshot` would create it
+right there. However it is a folder, not a subvolume. If `@snapshots` were a
+subvolume `snapshot` would still work, but some additional empty folders would
+be created which might be irritating.
 
 The content of `@snapshots` will look similar to the following example:
 
@@ -48,21 +58,21 @@ $ tree -L2 /mnt/@snapshots
 ├── 2021-10-14_14:38:04
 │  ├── @
 │  ├── @home
-│  └── @shared
+│  └── shared
 ├── 2021-10-14_14:38:28
 │  ├── @
 │  ├── @home
-│  └── @shared
+│  └── shared
 ├── 2021-10-15_08:46:58
 │  ├── @
 │  ├── @home
-│  └── @shared
+│  └── shared
 └── 2021-12-13_10:31:52
    ├── @
    ├── @home
-   └── @shared
+   └── shared
 ```
-Here, `@`, `@home` and `@shared` are read-only subvolumes which were created as
+Here, `@`, `@home` and `shared` are read-only subvolumes which were created as
 snapshots of their respective top level correspondents. The parent folder name
 states when the snapshot was created.
 
