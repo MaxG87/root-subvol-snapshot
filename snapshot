@@ -15,7 +15,8 @@ function main() {
     local mountDir; mountDir="$(mktemp -d)"
     local snapshots="${mountDir}/@snapshots"
     sudo mount -o subvolid=0 "${rootDevice}" "${mountDir}"
-    sudo mkdir -p "${snapshots}"
+
+    ensure_snapshots_subvolume "$snapshots"
     local newSnapshotsRoot; newSnapshotsRoot="${snapshots}/$(date +%Y-%m-%d_%H:%M:%S)"
 
     remove_old_snapshots "${maxAlterInTagen}" "${snapshots}"
@@ -74,6 +75,20 @@ function ensure_btrfs() {
     then
         echo Gerät "${rootDevice}" ist kein BtrFS-Dateisystem. Es wird kein Snapshot gemacht! >&2
         exit 0
+    fi
+}
+
+
+function ensure_snapshots_subvolume() {
+    local snapshots="$1"
+    if ! [[ -d "$snapshots" ]]
+    then
+        sudo btrfs subvol create "$snapshots"
+    fi
+
+    if ! sudo btrfs subvolume show "$snapshots" &> /dev/null
+    then
+        echo "Verzeichnis für Snapshots existiert, aber ist kein BtrFS-Subvolume. Fahre trotzdem fort." >&2
     fi
 }
 
