@@ -127,7 +127,7 @@ function create_snapshots() {
     local dest="${2}"
     sudo mkdir "${dest}"
     local srcSubvol
-    sudo btrfs subvolume list "${mountDir}" | grep -Fv / | awk '{print $9}' | \
+    sudo btrfs subvolume list "${mountDir}" | grep -Fv / | cut -d' ' -f9 | \
     while read -r srcSubvol
     do
         sudo btrfs subvolume "snapshot" -r "${mountDir}/${srcSubvol}" "${dest}/${srcSubvol}" |
