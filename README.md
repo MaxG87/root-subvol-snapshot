@@ -76,6 +76,76 @@ Here, `@`, `@home` and `shared` are read-only subvolumes which were created as
 snapshots of their respective top level correspondents. The parent folder name
 states when the snapshot was created.
 
+## Restoring from snapshots
+
+### Undoing accidental deletes
+
+In order to recover lost files, one can mount the snapshots subvolume to access
+them there. Mounting them can be done via
+
+```shell
+sudo mount -o subvol=@snapshots $DEVICE_OF_ROOT /mnt
+```
+
+Now the snapshots are available at `/mnt`. They are grouped in subdirectories
+with their creation times. One can simply `cd` into these and copy the lost
+files or directories somewhere else.
+
+Since the snapshots are created read-only, it should be impossible to alter
+them.
+
+
+### Restoring an old version of the subvolumes
+
+Sometimes recovering files that were accidentally deleted is not enough. If it
+is unclear what has to be undone to get rid of an undesired effect, it might be
+helpful to restore a previous state completely. One example probably everyone
+has experienced once would be calling `rm -rf /` in the wrong location. Another
+example experienced by the author was that after experienting with GPU driver
+configurations the graphical display did not work anymore.
+
+It is easiest to restore subvolumes using a live system. Some subvolumes might
+be recoverable from the running system too, but this guide does not cover that.
+
+From inside the live system, first the root subvolume must be mounted:
+
+```shell
+DEVICE_OF_ROOT=/dev/mapper/ssd-root  # insert your device here
+sudo mount -o subvolid=0 "$DEVICE_OF_ROOT" /mnt
+```
+
+Then all subvolumes are available under `/mnt`. For all subsequent commands it
+is assumed that they are run from inside the mount directory.
+
+```shell
+cd /mnt
+```
+
+First the subvolume must be removed:
+
+```shell
+SUBVOLUME=@  # insert your subvolume here
+sudo btrfs subvolume delete "$SUBVOLUME"
+```
+
+Then the desired snapshot must be snapshotted into the old location:
+
+```shell
+TIMESTAMP="2021-11-14_10:59:11"  # insert your timestamp here
+SNAPSHOT="@snapshots/$TIMESTAMP/$SUBVOLUME
+sudo btrfs subvolume snapshot "$SNAPSHOT" "$SUBVOLUME"
+```
+
+In case the subvolume that contains `/` is restored, the default subvolume must
+be set, so it will be mounted automatically by Grub.
+
+```shell
+sudo btrfs subvolume show "$SUBVOLUME"
+# read the subvolume id from the output
+SUBVOLUME_ID=7331  # insert the correct value here
+sudo btrfs subvolume set-default "$SUBVOLUME_ID" .
+```
+
 ## TODO
 
 * [Rewrite in Rust](https://github.com/ansuz/RIIR)
