@@ -45,9 +45,10 @@ Here, the entries `@`, `@home` and `shared` are independent subvolumes which
 shall be snapshotted into `@snapshots`.
 
 Please note that `@snapshots` is listed here because `snapshot` would create it
-right there. However it is a folder, not a subvolume. If `@snapshots` were a
-subvolume `snapshot` would still work, but some additional empty folders would
-be created which might be irritating.
+right there. It is a subvolume itself. Some additional logic prevents that
+`snapshot` would try to create a snapshot of `@snapshots`. See
+[here](#restoring-from-snapshots) on the benefits of that.
+
 
 The content of `@snapshots` will look similar to the following example:
 
