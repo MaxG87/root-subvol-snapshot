@@ -17,15 +17,15 @@ automated usage will be given.
 This section assumes that the script is available via `$PATH` under the name
 `snapshot`.
 
-* There is a help message available via `snapshot --help`.
-* For normal usage, `snapshot` is sufficient. It will create snapshots and
+- There is a help message available via `snapshot --help`.
+- For normal usage, `snapshot` is sufficient. It will create snapshots and
   delete these older than 60 days.
-* Running `snapshot --max-age N` allows to set the maximum age in days
+- Running `snapshot --max-age N` allows to set the maximum age in days
   explicitly. This is very helpful if one runs out of disk space.
-* It is not possible to use this script to remove old snapshots without
+- It is not possible to use this script to remove old snapshots without
   creating a new one. Since snapshots do not consume space, this feature does
   not seem to be desirable.
-* It is safe to run this script on non-BtrFS devices. It will print a brief
+- It is safe to run this script on non-BtrFS devices. It will print a brief
   message and exit with exit code 0.
 
 The default value of 60 days was chosen as good-fit for the author of this
@@ -160,7 +160,7 @@ sudo btrfs subvolume set-default "$SUBVOLUME_ID" .
 
 ## TODO
 
-* [Rewrite in Rust](https://github.com/ansuz/RIIR)
-* Currently snapshots are grouped by date. Maybe a grouping by device can be
+- [Rewrite in Rust](https://github.com/ansuz/RIIR)
+- Currently snapshots are grouped by date. Maybe a grouping by device can be
   provided additionally. Given how fast snapshots can be created and how few
   disk space they use, one could have both groupings simultaneously.
