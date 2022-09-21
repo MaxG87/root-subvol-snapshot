@@ -1,12 +1,19 @@
 # root-subvol-snapshot
+
 Script to snapshot all top level subvolumes on an BtrFS
 
 ## Installation
 
 Either `sudo install snapshot /usr/local/bin` or `install snapshot ~/.local/bin`.
 
-
 ## Usage
+
+This section will cover how to use the program. First it will be explained what
+to expect when interacting manually with the program, then some suggestions for
+automated usage will be given.
+
+### Manual Interaction
+
 This section assumes that the script is available via `$PATH` under the name
 `snapshot`.
 
@@ -24,7 +31,12 @@ This section assumes that the script is available via `$PATH` under the name
 The default value of 60 days was chosen as good-fit for the author of this
 script.
 
+### Embedding to Automated Workflows
 
+The author configured CRON to create a snapshot at every boot. For this, the
+script was installed to `/usr/local/bin`, so it is available at boot for the
+root user. Then, the line `@reboot snapshot` was added to the root user's CRON
+file by running `sudo crontab -e`.
 
 ## Directory layout
 
@@ -49,7 +61,6 @@ right there. It is a subvolume itself. Some additional logic prevents that
 `snapshot` would try to create a snapshot of `@snapshots`. See
 [here](#restoring-from-snapshots) on the benefits of that.
 
-
 The content of `@snapshots` will look similar to the following example:
 
 ```bash
@@ -73,6 +84,7 @@ $ tree -L2 /mnt/@snapshots
    ├── @home
    └── shared
 ```
+
 Here, `@`, `@home` and `shared` are read-only subvolumes which were created as
 snapshots of their respective top level correspondents. The parent folder name
 states when the snapshot was created.
@@ -94,7 +106,6 @@ files or directories somewhere else.
 
 Since the snapshots are created read-only, it should be impossible to alter
 them.
-
 
 ### Restoring an old version of the subvolumes
 
