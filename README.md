@@ -24,7 +24,7 @@ This section assumes that the script is available via `$PATH` under the name
   explicitly. This is very helpful if one runs out of disk space.
 - It is not possible to use this script to remove old snapshots without
   creating a new one. Since snapshots do not consume space, this feature does
-  not seem to be desirable.
+  not seem to be worth the effort.
 - It is safe to run this script on non-BtrFS devices. It will print a brief
   message and exit with exit code 0.
 
