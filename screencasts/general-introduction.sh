@@ -1,14 +1,22 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-source ~/.zshrc
+LONG_WAIT=3s
+SHORT_WAIT=1s
+VERY_SHORT_WAIT=.5s
+PROMPT="$ "
+
+function pseudoprompt() {
+    printf "%s" "$PROMPT"
+}
 
 function pseudotype() {
     local MIN_SLEEP_MS=75
     local MAX_SLEEP_MS=150
-    string=$1
+    sleep .${MAX_SLEEP_MS}s
+    string=${1:-}
     for ((i = 0; i < ${#string}; i++)); do
         # while read -r -n1 character; do
-        echo -n "${string:$i:1}"
+        printf "%s" "${string:$i:1}"
         sleep_ms=$((RANDOM % (MAX_SLEEP_MS - MIN_SLEEP_MS) + MIN_SLEEP_MS))
         sleep_arg="$(printf ".%03ds" $sleep_ms)"
         sleep "$sleep_arg"
@@ -16,80 +24,52 @@ function pseudotype() {
     echo
 }
 
-LONG_WAIT=3s
-SHORT_WAIT=1s
+function info() {
+    while [[ $# -gt 0 ]]
+    do
+        pseudotype "$1"
+        pseudoprompt
+        shift
+    done
+    sleep "$SHORT_WAIT"
+}
 
-pseudotype "# Let's create a snapshot!"
+function print-and-exec() {
+    local command="$1"
+    local time_to_sleep="$2"
+    pseudotype "$1"
+    eval "$1"
+    pseudoprompt
+    sleep "$time_to_sleep"
+}
 
-echo
-sleep "$SHORT_WAIT"
-pseudotype snapshot
-snapshot
-
-echo
-sleep $LONG_WAIT
-pseudotype '# As you noticed, the tool will ask for sudo permissions itself, so you do not have to prepend sudo all the time.'
-pseudotype '# If you enabled the sudo credentials caching, a second invocation will run without interruptions.'
-
-echo
+pseudoprompt
 sleep $SHORT_WAIT
-pseudotype snapshot
-snapshot
+info "# Let's create a snapshot!"
+print-and-exec snapshot "$SHORT_WAIT"
 
-echo
-pseudotype "# So, let's restore some files. Let's assume I removed a precious file."
-# sleep $LONG_WAIT
+info ""
+info '# As you noticed, the tool will ask for sudo permissions itself, so you do not' \
+    '# have to prepend sudo all the time. If you enabled sudo credentials caching, a' \
+    '# second invocation will run without password prompt.'
+print-and-exec snapshot "$SHORT_WAIT"
 
-# echo
-pseudotype 'date | tee precious-file'
-# date | tee precious-file
-# sleep $SHORT_WAIT
-pseudotype 'sha256sum precious-file | tee /tmp/SHA256SUMS'
-# sha256sum precious-file | tee /tmp/SHA256SUMS
-# sleep $SHORT_WAIT
-pseudotype 'rm precious-file'
-# rm precious-file
-# sleep $SHORT_WAIT
+info ""
+info "# So, let's create a precious file we can restore."
+print-and-exec 'head -c 1024 /dev/urandom > precious-file' "$SHORT_WAIT"
+print-and-exec 'sha256sum precious-file | tee /tmp/precious-file.shasum' "$SHORT_WAIT"
+print-and-exec 'snapshot' "$VERY_SHORT_WAIT"
+print-and-exec 'rm precious-file' "$VERY_SHORT_WAIT"
 
-# echo
-pseudotype "# First, we need to mount the snapshots subvolume."
-# sleep 1s
+info ""
+info "# In order to restore it, we first need to mount the snapshots subvolume."
+print-and-exec 'sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt' "$VERY_SHORT_WAIT"
+info "# Now we can find the most recent snapshot ..."
+print-and-exec 'ls /mnt | tail | column -c 80' "$LONG_WAIT"
+latest_snapshot=$(find /mnt -maxdepth 1 -mindepth 1 -type d | sort | tail -n1)
+info "# ... and restore the file."
+print-and-exec "cp $latest_snapshot/@home/\$USER/precious-file ." "$VERY_SHORT_WAIT"
 
-# echo
-pseudotype 'sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt'
-# sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt
-# sleep $SHORT_WAIT
-
-# echo
-pseudotype "# Now we can try to find to the most recent snapshot ..."
-# sleep 1s
-
-# echo
-pseudotype 'ls /mnt'
-# sleep $SHORT_WAIT
-# ls /mnt
-# sleep $SHORT_WAIT
-
-# latest_snapshot=$(find /mnt -maxdepth 1 -mindepth 1 -type d | sort)
-
-# echo
-pseudotype "# ... and restore the file."
-# sleep 1s
-
-pseudotype "cp $latest_snapshot/@home/\$USER/precious-file ."
-# sleep $SHORT_WAIT
-# cp "$latest_snapshot/@home/$USER/precious-file" .
-
-# echo
-pseudotype "# Let's verify that everything is okay again."
-# sleep 1s
-
-# echo
-pseudotype "sha256sum -c /tmp/SHA256SUMS"
-# sleep $SHORT_WAIT
-# sha256sum -c /tmp/SHA256SUMS
-# sleep $SHORT_WAIT
-pseudotype "bat precious-file"
-# sleep $SHORT_WAIT
-# bat precious-file
-# sleep $SHORT_WAIT
+info ""
+info "# Let's verify that everything is okay again."
+print-and-exec "sha256sum -c /tmp/precious-file.shasum" "$SHORT_WAIT"
