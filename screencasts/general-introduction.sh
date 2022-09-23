@@ -3,10 +3,9 @@
 LONG_WAIT=3s
 SHORT_WAIT=1s
 VERY_SHORT_WAIT=.5s
-PROMPT="$ "
 
 function pseudoprompt() {
-    printf "%s" "$PROMPT"
+    echo -en "\e[44m ~ \e[0m\e[34m\e[0m "
 }
 
 function pseudotype() {
