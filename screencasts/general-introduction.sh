@@ -1,63 +1,95 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
-echo "# Let's create a snapshot!"
-sleep 1s
+source ~/.zshrc
+
+function pseudotype() {
+    local MIN_SLEEP_MS=75
+    local MAX_SLEEP_MS=150
+    string=$1
+    for ((i = 0; i < ${#string}; i++)); do
+        # while read -r -n1 character; do
+        echo -n "${string:$i:1}"
+        sleep_ms=$((RANDOM % (MAX_SLEEP_MS - MIN_SLEEP_MS) + MIN_SLEEP_MS))
+        sleep_arg="$(printf ".%03ds" $sleep_ms)"
+        sleep "$sleep_arg"
+    done
+    echo
+}
+
+LONG_WAIT=3s
+SHORT_WAIT=1s
+
+pseudotype "# Let's create a snapshot!"
 
 echo
-echo snapshot
+sleep "$SHORT_WAIT"
+pseudotype snapshot
 snapshot
 
 echo
-echo '# As you noticed, the tool will ask for sudo permissions itself, so you do not have to prepend sudo all the time.'
-sleep 3s
-echo '# If you enabled the sudo credentials caching, a second invocation will run without interruptions.'
-sleep 3s
+sleep $LONG_WAIT
+pseudotype '# As you noticed, the tool will ask for sudo permissions itself, so you do not have to prepend sudo all the time.'
+pseudotype '# If you enabled the sudo credentials caching, a second invocation will run without interruptions.'
 
 echo
+sleep $SHORT_WAIT
+pseudotype snapshot
 snapshot
-echo snapshot
 
 echo
-echo "# So, let's restore some files. Let's assume I removed a precious file."
-sleep 1s
+pseudotype "# So, let's restore some files. Let's assume I removed a precious file."
+# sleep $LONG_WAIT
 
-echo
-echo 'date | tee precious-file'
-date | tee precious-file
-sleep .5s
-echo 'sha256sum precious-file | tee /tmp/SHA256SUMS'
-sha256sum precious-file | tee /tmp/SHA256SUMS
-sleep .5s
-echo 'rm precious-file'
-rm precious-file
-sleep .5s
+# echo
+pseudotype 'date | tee precious-file'
+# date | tee precious-file
+# sleep $SHORT_WAIT
+pseudotype 'sha256sum precious-file | tee /tmp/SHA256SUMS'
+# sha256sum precious-file | tee /tmp/SHA256SUMS
+# sleep $SHORT_WAIT
+pseudotype 'rm precious-file'
+# rm precious-file
+# sleep $SHORT_WAIT
 
-echo
-echo "# First, we need to mount the snapshots subvolume."
-sleep 1s
+# echo
+pseudotype "# First, we need to mount the snapshots subvolume."
+# sleep 1s
 
-echo
-echo 'sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt'
-sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt
-sleep .5s
+# echo
+pseudotype 'sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt'
+# sudo mount -o subvol=@snapshots /dev/mapper/ssd-root /mnt
+# sleep $SHORT_WAIT
 
-echo
-echo "# Now we can try to find to the most recent snapshot ..."
-sleep 1s
+# echo
+pseudotype "# Now we can try to find to the most recent snapshot ..."
+# sleep 1s
 
-echo
-echo 'ls /mnt'
-ls /mnt
-sleep .5s
+# echo
+pseudotype 'ls /mnt'
+# sleep $SHORT_WAIT
+# ls /mnt
+# sleep $SHORT_WAIT
 
-echo
-echo "# ... and restore the file."
-sleep 1s
+# latest_snapshot=$(find /mnt -maxdepth 1 -mindepth 1 -type d | sort)
 
-# cp .../@home/$USER/precious-file .
-#
-#
-# # Let's verify that everything is okay again.
-#
+# echo
+pseudotype "# ... and restore the file."
+# sleep 1s
+
+pseudotype "cp $latest_snapshot/@home/\$USER/precious-file ."
+# sleep $SHORT_WAIT
+# cp "$latest_snapshot/@home/$USER/precious-file" .
+
+# echo
+pseudotype "# Let's verify that everything is okay again."
+# sleep 1s
+
+# echo
+pseudotype "sha256sum -c /tmp/SHA256SUMS"
+# sleep $SHORT_WAIT
 # sha256sum -c /tmp/SHA256SUMS
+# sleep $SHORT_WAIT
+pseudotype "bat precious-file"
+# sleep $SHORT_WAIT
 # bat precious-file
+# sleep $SHORT_WAIT
