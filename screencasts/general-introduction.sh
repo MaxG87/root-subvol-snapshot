@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
 
-LONG_WAIT=3s
-SHORT_WAIT=1s
 VERY_SHORT_WAIT=.5s
+SHORT_WAIT=1s
+LONG_WAIT=3s
+MIN_KEYPRESS_JITTER_MS=75
+MAX_KEYPRESS_JITTER_MS=150
+
+function ms_to_sleeparg() {
+    printf ".%03ds" "$1"
+}
 
 function pseudoprompt() {
     echo -en "\e[44m ~ \e[0m\e[34m\e[0m "
 }
 
+function keypressjitter() {
+    local sleep_ms=$((RANDOM % (MAX_KEYPRESS_JITTER_MS - MIN_KEYPRESS_JITTER_MS) + MIN_KEYPRESS_JITTER_MS))
+    sleep "$(ms_to_sleeparg $sleep_ms)"
+}
+
 function pseudotype() {
-    local MIN_SLEEP_MS=75
-    local MAX_SLEEP_MS=150
-    sleep .${MAX_SLEEP_MS}s
+    sleep "$(ms_to_sleeparg $MAX_KEYPRESS_JITTER_MS)"
     string=${1:-}
     for ((i = 0; i < ${#string}; i++)); do
         printf "%s" "${string:$i:1}"
-        sleep_ms=$((RANDOM % (MAX_SLEEP_MS - MIN_SLEEP_MS) + MIN_SLEEP_MS))
-        sleep_arg="$(printf ".%03ds" $sleep_ms)"
-        sleep "$sleep_arg"
+        keypressjitter
     done
     echo
 }
@@ -27,6 +34,8 @@ function info() {
         echo -en "\e[1;30m"
         pseudotype "$1"
         echo -en "\e[0;0m"
+
+        [[ $# -gt 1 ]] && sleep "$(ms_to_sleeparg $MAX_KEYPRESS_JITTER_MS)"
         pseudoprompt
         shift
     done
