@@ -24,11 +24,13 @@ function pseudotype() {
 }
 
 function info() {
+    echo -en "\e[1;30m"
     while [[ $# -gt 0 ]]; do
         pseudotype "$1"
         pseudoprompt
         shift
     done
+    echo -en "\e[0m"
     sleep "$SHORT_WAIT"
 }
 
