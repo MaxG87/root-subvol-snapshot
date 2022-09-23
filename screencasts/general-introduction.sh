@@ -14,7 +14,6 @@ function pseudotype() {
     sleep .${MAX_SLEEP_MS}s
     string=${1:-}
     for ((i = 0; i < ${#string}; i++)); do
-        # while read -r -n1 character; do
         printf "%s" "${string:$i:1}"
         sleep_ms=$((RANDOM % (MAX_SLEEP_MS - MIN_SLEEP_MS) + MIN_SLEEP_MS))
         sleep_arg="$(printf ".%03ds" $sleep_ms)"
