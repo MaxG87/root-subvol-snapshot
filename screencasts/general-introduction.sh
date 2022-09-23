@@ -25,8 +25,7 @@ function pseudotype() {
 }
 
 function info() {
-    while [[ $# -gt 0 ]]
-    do
+    while [[ $# -gt 0 ]]; do
         pseudotype "$1"
         pseudoprompt
         shift
@@ -35,7 +34,6 @@ function info() {
 }
 
 function print-and-exec() {
-    local command="$1"
     local time_to_sleep="$2"
     pseudotype "$1"
     eval "$1"
