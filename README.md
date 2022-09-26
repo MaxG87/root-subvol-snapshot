@@ -12,6 +12,8 @@ This section will cover how to use the program. First it will be explained what
 to expect when interacting manually with the program, then some suggestions for
 automated usage will be given.
 
+[![asciicast](https://asciinema.org/a/523387.svg)](https://asciinema.org/a/523387)
+
 ### Manual Interaction
 
 This section assumes that the script is available via `$PATH` under the name
