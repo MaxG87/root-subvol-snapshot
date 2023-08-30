@@ -1,5 +1,5 @@
-from typer.testing import CliRunner
 from root_subvol_snapshot.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 
