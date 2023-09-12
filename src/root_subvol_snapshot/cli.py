@@ -3,12 +3,20 @@ Provide CLI
 
 This module provides the CLI to enter the program.
 """
+import sys
 import typing as t
 from pathlib import Path
 
 import typer
 
 app = typer.Typer()
+
+
+def main() -> None:
+    if len(sys.argv) == 1:
+        snapshot()
+    else:
+        app()
 
 
 @app.command()
@@ -27,4 +35,4 @@ def snapshot(device: t.Annotated[t.Optional[Path], typer.Argument()] = None) -> 
 
 
 if __name__ == "__main__":
-    app()
+    main()
