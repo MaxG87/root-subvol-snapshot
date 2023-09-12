@@ -1,4 +1,6 @@
-from root_subvol_snapshot.cli import app
+import sys
+
+from root_subvol_snapshot.cli import app, main
 from typer.testing import CliRunner
 
 runner = CliRunner()
@@ -8,6 +10,13 @@ def test_cli():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "Show this message and exit." in result.output
+
+
+def test_cli_without_args_snapshots(capsys, monkeypatch):
+    monkeypatch.setattr(sys, "argv", [sys.argv[0]])
+    main()
+    captured = capsys.readouterr()
+    assert captured.out == "Making a snapshot of the root subvolume...\n"
 
 
 def test_open():
@@ -32,3 +41,9 @@ def test_close_with_argument(tmp_path):
     result = runner.invoke(app, ["close", str(tmp_path)])
     assert result.exit_code == 0
     assert result.output.endswith(f"{tmp_path}...\n")
+
+
+def test_snapshot():
+    result = runner.invoke(app, ["snapshot"])
+    assert result.exit_code == 0
+    assert result.output.startswith("Making a snapshot of the root subvolume...")
