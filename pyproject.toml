@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "root-subvol-snapshot"
-version = "0.1.0"
+version = "0.2.0"
 description = "Create snapshots of subvolumes for disaster recovery"
 authors = ["Max Görner <5477952+MaxG87@users.noreply.github.com>"]
 license = "GPL v3 or later"
