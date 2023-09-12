@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/MaxG87/root-subvol-snapshot/compare/v0.1.0...v0.2.0) (2023-09-12)
+
+
+### Features
+
+* Add command `snapshot` ([1e7c2a3](https://github.com/MaxG87/root-subvol-snapshot/commit/1e7c2a32d508cdeb12fcd0508b674b679e452906))
+* Add py.typed marker file ([f708404](https://github.com/MaxG87/root-subvol-snapshot/commit/f708404bf28fc4495974fdf56d29e249152bce86))
+
 ## 0.1.0 (2023-08-30)
 
 
