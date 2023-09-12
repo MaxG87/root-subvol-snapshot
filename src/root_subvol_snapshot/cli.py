@@ -21,5 +21,10 @@ def close(device: t.Annotated[t.Optional[Path], typer.Argument()] = None) -> Non
     typer.echo(f"Closing {device}...")
 
 
+@app.command()
+def snapshot(device: t.Annotated[t.Optional[Path], typer.Argument()] = None) -> None:
+    typer.echo("Making a snapshot of the root subvolume...")
+
+
 if __name__ == "__main__":
     app()

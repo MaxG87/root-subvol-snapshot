@@ -32,3 +32,9 @@ def test_close_with_argument(tmp_path):
     result = runner.invoke(app, ["close", str(tmp_path)])
     assert result.exit_code == 0
     assert result.output.endswith(f"{tmp_path}...\n")
+
+
+def test_snapshot():
+    result = runner.invoke(app, ["snapshot"])
+    assert result.exit_code == 0
+    assert result.output.startswith("Making a snapshot of the root subvolume...")
