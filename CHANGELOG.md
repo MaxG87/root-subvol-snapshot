@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/MaxG87/root-subvol-snapshot/compare/v0.2.0...v0.3.0) (2024-02-06)
+
+
+### Features
+
+* Enable support for Python 3.12 ([642957b](https://github.com/MaxG87/root-subvol-snapshot/commit/642957bc6d865dc6de1cdc187f0595793829d300))
+
 ## [0.2.0](https://github.com/MaxG87/root-subvol-snapshot/compare/v0.1.0...v0.2.0) (2023-09-12)
 
 
