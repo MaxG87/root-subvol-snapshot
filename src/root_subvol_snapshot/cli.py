@@ -3,6 +3,7 @@ Provide CLI
 
 This module provides the CLI to enter the program.
 """
+
 import sys
 import typing as t
 from pathlib import Path
