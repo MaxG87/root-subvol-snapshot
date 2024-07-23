@@ -91,10 +91,7 @@ def test_setup_logging_clamps_level(capsys) -> None:
     assert tracemsg in err
 
 
-@pytest.mark.parametrize(
-    "subprogram",
-    ["backup", "close", "open"],
-)
+@pytest.mark.parametrize("subprogram", ["backup"])
 def test_subprograms_refuse_missing_config(subprogram, runner) -> None:
     config_file = Path(get_random_filename())
     result = runner.invoke(app, [subprogram, "--config", str(config_file)])
@@ -103,10 +100,7 @@ def test_subprograms_refuse_missing_config(subprogram, runner) -> None:
 
 
 @pytest.mark.skipif(in_docker_container(), reason="All files are readable for root")
-@pytest.mark.parametrize(
-    "subprogram",
-    ["backup", "close", "open"],
-)
+@pytest.mark.parametrize("subprogram", ["backup"])
 def test_subprograms_refuse_unreadable_file(subprogram, runner) -> None:
     with NamedTemporaryFile() as fh:
         config_file = Path(fh.name)
@@ -116,10 +110,7 @@ def test_subprograms_refuse_unreadable_file(subprogram, runner) -> None:
         assert result.exit_code != 0
 
 
-@pytest.mark.parametrize(
-    "subprogram",
-    ["backup", "close", "open"],
-)
+@pytest.mark.parametrize("subprogram", ["backup"])
 def test_subprograms_refuse_directories(subprogram, runner) -> None:
     with TemporaryDirectory() as tmp_dir:
         result = runner.invoke(app, [subprogram, "--config", tmp_dir])
@@ -135,7 +126,9 @@ def test_close_does_not_close_unopened_device(runner, encrypted_btrfs_device) ->
     with NamedTemporaryFile() as tempf:
         config_file = Path(tempf.name)
         config_file.write_text(f"[{config.model_dump_json()}]")
-        close_result = runner.invoke(app, ["close", "--config", str(config_file)])
+        close_result = runner.invoke(
+            app, ["close", "--device", str(encrypted_btrfs_device)]
+        )
         assert close_result.stdout == ""
         assert close_result.exit_code == 0
 

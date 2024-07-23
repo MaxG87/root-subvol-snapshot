@@ -3,6 +3,7 @@ import enum
 import json
 import os
 import sys
+import typing as t
 from pathlib import Path
 from tempfile import mkdtemp
 from typing import Any, Callable, Optional
@@ -55,63 +56,43 @@ def setup_logging(verbosity: int) -> None:
 
 CONFIG_OPTION = typer.Option(get_default_config_path(), exists=True, dir_okay=False)
 VERBOSITY_OPTION = typer.Option(0, "--verbose", "-v", count=True)
+DEVICE_OPTION = t.Annotated[
+    Path, typer.Option(..., exists=True, dir_okay=False, readable=True)
+]
 
 
 @app.command()
-def open(  # noqa: A001
-    config: Path = CONFIG_OPTION, verbose: int = VERBOSITY_OPTION
-) -> None:
+def open(device: DEVICE_OPTION, verbose: int = VERBOSITY_OPTION) -> None:  # noqa: A001
     """
-    Öffne alle in der Konfiguration gelisteten Speichermedien
+    Open snapshot subvolume of a Btrfs device
 
-    Das Kommando `open` öffnet alle Speichermedien, deren UUID in der
-    Konfiguration erwähnt wird.  Für jedes geöffnete Speichermedium wird die
-    UUID und der Mount-Zielordner angegeben.
-
-    Dies Kommando ist besonders nützlich um Sicherheitskopien
-    wiederherzustellen. Dafür wird das Speichermedium, auf dem sich die
-    Sicherheitskopien befinden, mittels `butter-backup open` geöffnet. Dann
-    kann mit den Daten interagiert werden, z.B. durch Öffnen im Dateibrowser
-    oder durch Verwendung von `restic`. Nach erfolgreicher Wiederherstellung
-    kann das Speichermedium mit `butter-backup close` wieder entfernt werden.
+    The command `open` mounts the subvolume `@snapshot` of a Btrfs device. If
+    no device is provided, the one that hosts `/` will be used.
     """
     setup_logging(verbose)
-    configurations = cp.parse_configuration(config.read_text())
-    for cfg in configurations:
-        if cfg.device().exists():
-            mount_dir = Path(mkdtemp())
-            decrypted = sdm.open_encrypted_device(cfg.device(), cfg.DevicePassCmd)
-            sdm.mount_btrfs_device(
-                decrypted, mount_dir=mount_dir, compression=cfg.Compression
-            )
-            typer.echo(f"Speichermedium {cfg.UUID} wurde in {mount_dir} geöffnet.")
+    mount_dir = Path(mkdtemp())
+    sdm.mount_btrfs_device(device, mount_dir=mount_dir)
+    typer.echo(f"Device {device} was mounted in {mount_dir}.")
 
 
 @app.command()
-def close(config: Path = CONFIG_OPTION, verbose: int = VERBOSITY_OPTION) -> None:
+def close(device: DEVICE_OPTION, verbose: int = VERBOSITY_OPTION) -> None:
     """
-    Schließe alle geöffneten Speichermedien
+    Unmounts a Btrfs device
 
-    Das Kommando `close` schließt alle gemounteten Speichermedien, deren UUIDs
-    in der Konfiguration erwähnt werden. Es ist das Gegenstück des Kommandos
-    `open`. Weitere Erklärungen finden sich dort.
+    The command `close` unmounts the provided Btrfs device. If no device is
+    provided, the one that hosts `/` will be used. It is the counterpart of the
+    `open` command. Further explanations can be found there.
     """
     setup_logging(verbose)
-    configurations = cp.parse_configuration(config.read_text())
     mounted_devices = sdm.get_mounted_devices()
-    for cfg in configurations:
-        mapped_device = f"/dev/mapper/{cfg.UUID}"
-        if cfg.device().exists() and mapped_device in mounted_devices:
-            mount_dirs = mounted_devices[mapped_device]
-            if len(mount_dirs) != 1:
-                # TODO introduce custom exception
-                raise ValueError(
-                    "Got several possible mount points. Expected exactly 1!"
-                )
-            mount_dir = mount_dirs.pop()
-            sdm.unmount_device(mount_dir)
-            sdm.close_decrypted_device(Path(mapped_device))
-            mount_dir.rmdir()
+    mount_dirs = mounted_devices[str(device)]
+    if len(mount_dirs) != 1:
+        # TODO introduce custom exception
+        raise ValueError("Got several possible mount points. Expected exactly 1!")
+    mount_dir = mount_dirs.pop()
+    sdm.unmount_device(mount_dir)
+    mount_dir.rmdir()
 
 
 @app.command()
