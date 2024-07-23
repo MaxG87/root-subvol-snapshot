@@ -9,9 +9,9 @@ import storage_device_managers as sdm
 from loguru import logger
 from typer.testing import CliRunner
 
-from butter_backup import cli
-from butter_backup import config_parser as cp
-from butter_backup.cli import app
+from root_subvol_snapshot import cli
+from root_subvol_snapshot import config_parser as cp
+from root_subvol_snapshot.cli import app
 
 
 def get_random_filename() -> str:

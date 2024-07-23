@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 import storage_device_managers as sdm
 
-from butter_backup import device_managers as dm
+from root_subvol_snapshot import device_managers as dm
 
 
 @pytest.fixture(scope="session")

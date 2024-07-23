@@ -10,7 +10,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
 
-from butter_backup import config_parser as cp
+from root_subvol_snapshot import config_parser as cp
 
 SUCCESS_CODES = {0, None}
 

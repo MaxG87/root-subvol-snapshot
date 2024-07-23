@@ -11,7 +11,7 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 from storage_device_managers import ValidCompressions
 
-from butter_backup import config_parser as cp
+from root_subvol_snapshot import config_parser as cp
 from tests import hypothesis_utils as hu
 
 TEST_RESOURCES = Path(__file__).parent.parent / "resources"
