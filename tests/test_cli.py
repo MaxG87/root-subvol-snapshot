@@ -127,21 +127,6 @@ def test_subprograms_refuse_directories(subprogram, runner) -> None:
         assert result.exit_code != 0
 
 
-@pytest.mark.skip("Impossible to implement!")
-def test_open_refuses_missing_xdg_config(runner) -> None:
-    # It seems as if this test cannot be implemented at the moment.
-    #
-    # This test resets XDG_CONFIG_HOME to provoke that get_default_config_path
-    # returns a not existing config file. However, get_default_config_path is
-    # executed at import time, rendering resetting XDG_CONFIG_HOME effectless.
-    with TemporaryDirectory() as xdg_config_dir:
-        pass
-    with mock.patch("os.getenv", {"XDG_CONFIG_HOME": xdg_config_dir}.get):
-        result = runner.invoke(app, ["open"])
-    assert xdg_config_dir in result.stderr
-    assert result.exit_code != 0
-
-
 @pytest.mark.skipif(
     in_docker_container(), reason="Test is known to fail in Docker container"
 )
