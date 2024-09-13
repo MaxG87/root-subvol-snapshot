@@ -1,0 +1,10 @@
+[Unit]
+Description=Create snapshots of all top-level subvolumes of /'s partition
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/snapshot
+
+[Install]
+WantedBy=default.target
