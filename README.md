@@ -35,10 +35,11 @@ script.
 
 ### Embedding to Automated Workflows
 
-The author configured CRON to create a snapshot at every boot. For this, the
-script was installed to `/usr/local/bin`, so it is available at boot for the
-root user. Then, the line `@reboot snapshot` was added to the root user's CRON
-file by running `sudo crontab -e`.
+The author configured a systemd service to create a snapshot at every boot. For
+this, the script was installed to `/usr/local/bin`, so it is available at boot
+for the root user. Then, the provided service file was copied to
+`/etc/systemd/system` and enabled using `systemctl enable
+root-subvol-snapshot.service`.
 
 ## Directory layout
 
