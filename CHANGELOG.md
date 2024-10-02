@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/MaxG87/root-subvol-snapshot/compare/v0.2.0...v0.3.0) (2024-09-24)
+
+
+### Features
+
+* Add systemd service to trigger execution at boot ([3bc3862](https://github.com/MaxG87/root-subvol-snapshot/commit/3bc3862ddf01f1df41b3189bd591d86d43fc4d77))
+* Enable support for Python 3.12 ([642957b](https://github.com/MaxG87/root-subvol-snapshot/commit/642957bc6d865dc6de1cdc187f0595793829d300))
+
 ## [0.2.0](https://github.com/MaxG87/root-subvol-snapshot/compare/v0.1.0...v0.2.0) (2023-09-12)
 
 
