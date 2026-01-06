@@ -4,7 +4,7 @@ After=local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/snapshot
+ExecStart=/usr/bin/snapshot
 
 [Install]
 WantedBy=default.target

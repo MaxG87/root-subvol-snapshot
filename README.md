@@ -4,7 +4,7 @@ Script to snapshot all top level subvolumes on an BtrFS
 
 ## Installation
 
-Either `sudo install snapshot /usr/local/bin` or `install snapshot ~/.local/bin`.
+Either `sudo install snapshot /usr/bin` or `install snapshot ~/.local/bin`.
 
 ## Usage
 
@@ -36,8 +36,8 @@ script.
 ### Embedding to Automated Workflows
 
 The author configured a systemd service to create a snapshot at every boot. For
-this, the script was installed to `/usr/local/bin`, so it is available at boot
-for the root user. Then, the provided service file was copied to
+this, the script was installed to `/usr/bin`, so it is available at boot for
+the root user. Then, the provided service file was copied to
 `/etc/systemd/system` and enabled using `systemctl enable
 root-subvol-snapshot.service`.
 
