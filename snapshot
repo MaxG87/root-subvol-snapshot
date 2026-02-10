@@ -105,23 +105,22 @@ function remove_old_snapshots() {
     schwelle=$(date --date "${maxTage} days ago" +%s)
 
     local dateDir
-    find "${snapshots}" -mindepth 1 -maxdepth 1 |
-        while read -r dateDir; do
-            local dirDate
-            dirDate="$(basename "${dateDir}")"
-            local whenCreated
-            whenCreated="$(date +%s -d "${dirDate/_/ }")"
-            if [[ "${whenCreated}" -le "${schwelle}" ]]; then
-                local curSnapshot
-                for curSnapshot in "${dateDir}"/*; do
-                    # Es wird angenommen, dass alle Unterordner von ${dateDir}
-                    # Snapshots sind. Dadurch vereinfacht sich diese Schleife
-                    # ungemein.
-                    sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
-                done
-                sudo rmdir "${dateDir}"
-            fi
-        done
+    while IFS= read -r -d '' dateDir; do
+        local dirDate
+        dirDate="$(basename "${dateDir}")"
+        local whenCreated
+        whenCreated="$(date +%s -d "${dirDate/_/ }")"
+        if [[ "${whenCreated}" -le "${schwelle}" ]]; then
+            local curSnapshot
+            for curSnapshot in "${dateDir}"/*; do
+                # Es wird angenommen, dass alle Unterordner von ${dateDir}
+                # Snapshots sind. Dadurch vereinfacht sich diese Schleife
+                # ungemein.
+                sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
+            done
+            sudo rmdir "${dateDir}"
+        fi
+    done < <(find "${snapshots}" -mindepth 1 -maxdepth 1 -print0)
 }
 
 function create_snapshots() {
