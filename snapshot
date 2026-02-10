@@ -6,18 +6,21 @@ DEFAULT_MAX_AGE=60
 
 function main() {
 
-    local rootDevice; rootDevice=$(mount | grep -F 'on / type' | awk '{print $1}')
+    local rootDevice
+    rootDevice=$(mount | grep -F 'on / type' | awk '{print $1}')
     local maxAlterInTagen="$1"
 
     ensure_root_permissions
     ensure_btrfs "${rootDevice}"
 
-    local mountDir; mountDir="$(mktemp -d)"
+    local mountDir
+    mountDir="$(mktemp -d)"
     local snapshots="${mountDir}/@snapshots"
     sudo mount -o subvolid=0 "${rootDevice}" "${mountDir}"
 
     ensure_snapshots_subvolume "$snapshots"
-    local newSnapshotsRoot; newSnapshotsRoot="${snapshots}/$(date +%Y-%m-%d_%H:%M:%S)"
+    local newSnapshotsRoot
+    newSnapshotsRoot="${snapshots}/$(date +%Y-%m-%d_%H:%M:%S)"
 
     remove_old_snapshots "${maxAlterInTagen}" "${snapshots}"
     create_snapshots "${mountDir}" "${newSnapshotsRoot}"
@@ -29,12 +32,20 @@ function main() {
 
 function parse_args() {
     maxAlterInTagen=${DEFAULT_MAX_AGE}
-    while [[ $# -gt 0 ]]
-    do
+    while [[ $# -gt 0 ]]; do
         case "${1}" in
-            -h | --help) print_usage ; exit 0 ;;
-            --max-age) maxAlterInTagen="$2"; shift ;;
-            *) echo "Unbekannte Option '$1'. Abbruch." >&2; exit 1 ;;
+            -h | --help)
+                print_usage
+                exit 0
+                ;;
+            --max-age)
+                maxAlterInTagen="$2"
+                shift
+                ;;
+            *)
+                echo "Unbekannte Option '$1'. Abbruch." >&2
+                exit 1
+                ;;
         esac
         shift
     done
@@ -55,13 +66,11 @@ EOF
 }
 
 function ensure_root_permissions() {
-    if ! sudo -v
-    then
+    if ! sudo -v; then
         echo Unverzichtbare Rootrechte sind nicht verfügbar. Abbruch! >&2
         exit 1
     fi
 }
-
 
 function ensure_btrfs() {
     local rootDevice="$1"
@@ -71,55 +80,49 @@ function ensure_btrfs() {
     #
     # Um das snapshot-Skript auch auf nicht-BtrFS-Systemen im distup-Alias
     # verwenden zu können, ist der Exit-Code trotzdem "0".
-    if [[ $(lsblk -o FSTYPE "${rootDevice}" | tail -n1) != "btrfs" ]]
-    then
+    if [[ $(lsblk -o FSTYPE "${rootDevice}" | tail -n1) != "btrfs" ]]; then
         echo Gerät "${rootDevice}" ist kein BtrFS-Dateisystem. Es wird kein Snapshot gemacht! >&2
         exit 0
     fi
 }
 
-
 function ensure_snapshots_subvolume() {
     local snapshots="$1"
-    if ! [[ -d "$snapshots" ]]
-    then
+    if ! [[ -d "$snapshots" ]]; then
         sudo btrfs subvol create "$snapshots"
     fi
 
-    if ! sudo btrfs subvolume show "$snapshots" &> /dev/null
-    then
+    if ! sudo btrfs subvolume show "$snapshots" &>/dev/null; then
         echo "Verzeichnis für Snapshots existiert, aber ist kein BtrFS-Subvolume. Fahre trotzdem fort." >&2
     fi
 }
-
 
 function remove_old_snapshots() {
     # Lösche alle Snapshots, die älter sind als $maxTage Tage.
     local maxTage="$1"
     local snapshots="$2"
-    local schwelle; schwelle=$(date --date "${maxTage} days ago" +%s)
+    local schwelle
+    schwelle=$(date --date "${maxTage} days ago" +%s)
 
     local dateDir
-    find "${snapshots}" -mindepth 1 -maxdepth 1 | \
-    while read -r dateDir
-    do
-        local dirDate; dirDate="$(basename "${dateDir}")"
-        local whenCreated; whenCreated="$(date +%s -d "${dirDate/_/ }")"
-        if [[ "${whenCreated}" -le "${schwelle}" ]]
-        then
-            local curSnapshot
-            for curSnapshot in "${dateDir}"/*
-            do
-                # Es wird angenommen, dass alle Unterordner von ${dateDir}
-                # Snapshots sind. Dadurch vereinfacht sich diese Schleife
-                # ungemein.
-                sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
-            done
-            sudo rmdir "${dateDir}"
-        fi
-    done
+    find "${snapshots}" -mindepth 1 -maxdepth 1 |
+        while read -r dateDir; do
+            local dirDate
+            dirDate="$(basename "${dateDir}")"
+            local whenCreated
+            whenCreated="$(date +%s -d "${dirDate/_/ }")"
+            if [[ "${whenCreated}" -le "${schwelle}" ]]; then
+                local curSnapshot
+                for curSnapshot in "${dateDir}"/*; do
+                    # Es wird angenommen, dass alle Unterordner von ${dateDir}
+                    # Snapshots sind. Dadurch vereinfacht sich diese Schleife
+                    # ungemein.
+                    sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
+                done
+                sudo rmdir "${dateDir}"
+            fi
+        done
 }
-
 
 function create_snapshots() {
     # neue Snapshots anlegen
@@ -127,16 +130,14 @@ function create_snapshots() {
     local dest="${2}"
     sudo mkdir "${dest}"
     local srcSubvol
-    sudo btrfs subvolume list "${mountDir}" | \
-    grep -Ev '/|@snapshots' | \
-    cut -d' ' -f9 | \
-    while read -r srcSubvol
-    do
-        sudo btrfs subvolume "snapshot" -r "${mountDir}/${srcSubvol}" "${dest}/${srcSubvol}" |
-            sed "s!${mountDir}/!!g"
-    done
+    sudo btrfs subvolume list "${mountDir}" |
+        grep -Ev '/|@snapshots' |
+        cut -d' ' -f9 |
+        while read -r srcSubvol; do
+            sudo btrfs subvolume "snapshot" -r "${mountDir}/${srcSubvol}" "${dest}/${srcSubvol}" |
+                sed "s!${mountDir}/!!g"
+        done
 }
-
 
 parse_args "$@"
 main "${maxAlterInTagen}"
