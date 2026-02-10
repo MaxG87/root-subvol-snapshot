@@ -112,12 +112,12 @@ function remove_old_snapshots() {
         whenCreated="$(date +%s -d "${dirDate/_/ }")"
         if [[ "${whenCreated}" -le "${schwelle}" ]]; then
             local curSnapshot
-            for curSnapshot in "${dateDir}"/*; do
+            while IFS= read -r -d '' curSnapshot; do
                 # Es wird angenommen, dass alle Unterordner von ${dateDir}
                 # Snapshots sind. Dadurch vereinfacht sich diese Schleife
                 # ungemein.
                 sudo btrfs subvolume delete "${curSnapshot}" | sed "s!${mountDir}/!!g"
-            done
+            done < <(find "${dateDir}" -mindepth 1 -maxdepth 1 -print0)
             sudo rmdir "${dateDir}"
         fi
     done < <(find "${snapshots}" -mindepth 1 -maxdepth 1 -print0)
