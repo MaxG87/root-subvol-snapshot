@@ -143,7 +143,15 @@ function remove_old_snapshots() {
 }
 
 function create_snapshots() {
-    # neue Snapshots anlegen
+    # Create read-only snapshots of all **top-level** subvolumes
+    #
+    # Only top-level subvolumes are snapshotted. On modern Btrfs systems, there
+    # tend to be plenty of subvolumes, most of which are not relevant for the
+    # user. The Docker volumes management would be an example of that.
+    #
+    # By limiting the snapshots to top-level subvolumes, only the most relevant
+    # data is snapshotted: root as @, /home as @home and a few others. This
+    # keeps the snapshot size small and manageable.
     local mountDir="${1}"
     local dest="${2}"
     sudo mkdir "${dest}"
