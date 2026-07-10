@@ -80,7 +80,7 @@ function ensure_btrfs() {
     #
     # Um das snapshot-Skript auch auf nicht-BtrFS-Systemen im distup-Alias
     # verwenden zu können, ist der Exit-Code trotzdem "0".
-    if [[ $(lsblk -o FSTYPE "${rootDevice}" | tail -n1) != "btrfs" ]]; then
+    if [[ $(lsblk -no FSTYPE "${rootDevice}") != "btrfs" ]]; then
         echo Gerät "${rootDevice}" ist kein BtrFS-Dateisystem. Es wird kein Snapshot gemacht! >&2
         exit 0
     fi
