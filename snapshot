@@ -55,12 +55,23 @@ function print_usage() {
     cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") [-h|--help] [--max-age <AGE>]
 
-Script description here.
+Creates a read-only BtrFS snapshot of all top-level subvolumes of the
+root filesystem, first deleting any snapshots older than --max-age days.
+
+Requires the root filesystem to be on BtrFS; otherwise the script exits
+without taking a snapshot (exit code 0). This allows embedding the script in a
+dist-upgrade alias without breaking it on non-BtrFS systems.
+
+Snapshots are stored under the @snapshots subvolume, each in a directory
+named after its creation time (format: YYYY-MM-DD_HH:MM:SS).
+
+The script will ask for root permissions via sudo if not run as root.
 
 Available options:
 
 -h, --help      Print this help and exit
---max-age       Maximum age of snapshots in days. Defaults to ${DEFAULT_MAX_AGE}.
+--max-age       Maximum age of snapshots in days. Older snapshots are deleted
+                before new ones are created. Defaults to ${DEFAULT_MAX_AGE}.
 EOF
 
 }
