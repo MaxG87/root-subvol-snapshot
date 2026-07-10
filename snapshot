@@ -22,7 +22,7 @@ function main() {
     local newSnapshotsRoot
     newSnapshotsRoot="${snapshots}/$(date +%Y-%m-%d_%H:%M:%S)"
 
-    remove_old_snapshots "${maxAlterInTagen}" "${snapshots}"
+    remove_old_snapshots "${maxAlterInTagen}" "${snapshots}" "${mountDir}"
     create_snapshots "${mountDir}" "${newSnapshotsRoot}"
 
     sudo umount "${mountDir}"
@@ -101,6 +101,7 @@ function remove_old_snapshots() {
     # Lösche alle Snapshots, die älter sind als $maxTage Tage.
     local maxTage="$1"
     local snapshots="$2"
+    local mountDir="$3"
     local threshold
     threshold=$(date --date "${maxTage} days ago" +%s)
 
