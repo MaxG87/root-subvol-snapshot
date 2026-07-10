@@ -101,8 +101,8 @@ function remove_old_snapshots() {
     # Lösche alle Snapshots, die älter sind als $maxTage Tage.
     local maxTage="$1"
     local snapshots="$2"
-    local schwelle
-    schwelle=$(date --date "${maxTage} days ago" +%s)
+    local threshold
+    threshold=$(date --date "${maxTage} days ago" +%s)
 
     local -A dateDirs=()
     local -a toDelete=()
@@ -113,7 +113,7 @@ function remove_old_snapshots() {
         dateDir="$(dirname "${curSnapshot}")"
         dirDate="$(basename "${dateDir}")"
         whenCreated="$(date +%s -d "${dirDate/_/ }")"
-        if [[ "${whenCreated}" -le "${schwelle}" ]]; then
+        if [[ "${whenCreated}" -le "${threshold}" ]]; then
             toDelete+=("${curSnapshot}")
             dateDirs["${dateDir}"]=1
         fi
