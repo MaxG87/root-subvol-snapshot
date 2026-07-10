@@ -7,7 +7,7 @@ DEFAULT_MAX_AGE=60
 function main() {
 
     local rootDevice
-    rootDevice=$(mount | grep -F 'on / type' | awk '{print $1}')
+    rootDevice=$(findmnt -no SOURCE --nofsroot /)
     local maxAlterInTagen="$1"
 
     ensure_root_permissions
