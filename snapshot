@@ -122,8 +122,8 @@ function remove_old_snapshots() {
     local curSnapshot
     while IFS= read -r -d '' curSnapshot; do
         local dateDir dirDate whenCreated
-        dateDir="$(dirname "${curSnapshot}")"
-        dirDate="$(basename "${dateDir}")"
+        dateDir="${curSnapshot%/*}"
+        dirDate="${dateDir##*/}"
         whenCreated="$(date +%s -d "${dirDate/_/ }")"
         if [[ "${whenCreated}" -le "${threshold}" ]]; then
             toDelete+=("${curSnapshot}")
