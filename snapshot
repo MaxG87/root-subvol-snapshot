@@ -164,14 +164,11 @@ function create_snapshots() {
     local mountDir="${1}"
     local dest="${2}"
     sudo mkdir "${dest}"
-    local srcSubvol
     sudo btrfs subvolume list "${mountDir}" |
         grep -Ev '/|@snapshots' |
         cut -d' ' -f9 |
-        while read -r srcSubvol; do
-            sudo btrfs subvolume "snapshot" -r "${mountDir}/${srcSubvol}" "${dest}/${srcSubvol}" |
-                sed "s!${mountDir}/!!g"
-        done
+        xargs -P0 -I{} sudo btrfs subvolume "snapshot" -r "${mountDir}/{}" "${dest}/{}" |
+        sed "s!${mountDir}/!!g"
 }
 
 parse_args "$@"
