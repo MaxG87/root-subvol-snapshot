@@ -116,29 +116,38 @@ function remove_old_snapshots() {
     local threshold
     threshold=$(date --date "${maxTage} days ago" +%s)
 
-    local -A dateDirs=()
-    local -a toDelete=()
+    readarray -d '' allSnapshots < <(find "${snapshots}" -mindepth 2 -maxdepth 2 -print0)
+    readarray -d '' allDateDirs < <(printf '%s\0' "${allSnapshots[@]}" | xargs -0 dirname -z)
+    readarray -d '' allSnapshotDates < <(
+        printf '%s\0' "${allDateDirs[@]}" |
+            xargs -0 basename --multiple --zero |
+            sed -z 's/_/ /g'
+    )
+    # The following line would break if some basename consisted of several
+    # lines, each being a valid date. However, this would be a violation of the
+    # snapshot folder name requirements.
+    readarray allWhenCreatedTimestamps < <(printf '%s\n' "${allSnapshotDates[@]}" | date +%s -f -)
 
-    local curSnapshot
-    while IFS= read -r -d '' curSnapshot; do
-        local dateDir dirDate whenCreated
-        dateDir="${curSnapshot%/*}"
-        dirDate="${dateDir##*/}"
-        whenCreated="$(date +%s -d "${dirDate/_/ }")"
-        if [[ "${whenCreated}" -le "${threshold}" ]]; then
-            toDelete+=("${curSnapshot}")
-            dateDirs["${dateDir}"]=1
+    local -a toDeleteSnapshots=()
+    local -A toDeleteDateDirs=()
+    local idx
+    for idx in "${!allWhenCreatedTimestamps[@]}"; do # iterate over all indices of the array
+        local whenCreated="${allWhenCreatedTimestamps[idx]}"
+        if [[ "${whenCreated}" -gt "${threshold}" ]]; then
+            continue
         fi
-    done < <(find "${snapshots}" -mindepth 2 -maxdepth 2 -print0)
+        toDeleteSnapshots+=("${allSnapshots[idx]}")
+        toDeleteDateDirs["${allDateDirs[idx]}"]=1
+    done
 
-    if [[ ${#toDelete[@]} -gt 0 ]]; then
-        printf '%s\0' "${toDelete[@]}" |
+    if [[ ${#toDeleteSnapshots[@]} -gt 0 ]]; then
+        printf '%s\0' "${toDeleteSnapshots[@]}" |
             xargs -0 sudo btrfs subvolume delete --commit-after |
             sed "s!${mountDir}/!!g"
     fi
 
-    if [[ ${#dateDirs[@]} -gt 0 ]]; then
-        printf '%s\0' "${!dateDirs[@]}" | xargs -0 sudo rmdir
+    if [[ ${#toDeleteDateDirs[@]} -gt 0 ]]; then
+        printf '%s\0' "${!toDeleteDateDirs[@]}" | xargs -0 sudo rmdir
     fi
 }
 
