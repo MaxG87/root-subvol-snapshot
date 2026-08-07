@@ -24,7 +24,6 @@
 
 * **cicd:** Use correct project type in release-please ([2e5f5ce](https://github.com/MaxG87/root-subvol-snapshot/commit/2e5f5cea76d10758e2b3c85c2231206a04268a87))
 
-
 ### Documentation
 
 * Add initial Changelog file ([8026b67](https://github.com/MaxG87/root-subvol-snapshot/commit/8026b6757a3f5984b679ec09742e356196b79b79))
